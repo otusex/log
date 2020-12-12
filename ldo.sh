@@ -54,49 +54,6 @@ krb5_principal = auditd
 distribute_network = no
 EOF
 
-cat << EOF > rsyslog.conf
-
-$ModLoad imuxsock 
-$ModLoad imjournal 
-
-$ModLoad imudp
-$UDPServerRun 514
-
-$ModLoad imtcp
-$InputTCPServerRun 514
-
-
-
-$WorkDirectory /var/lib/rsyslog
-
-$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-
-
-$IncludeConfig /etc/rsyslog.d/*.conf
-
-$OmitLocalLogging on
-
-$IMJournalStateFile imjournal.state
-
-
-$template Incoming-logs,"/mnt/logging/192.168.10.22/%PROGRAMNAME%.log"
-if $fromhost-ip == "192.168.10.22"  then -?Incoming-logs
-& stop
-
-#kern.*                                                 /dev/console
-
-*.info;mail.none;authpriv.none;cron.none                /var/log/messages
-
-authpriv.*                                              /var/log/secure
-mail.*                                                  -/var/log/maillog
-cron.*                                                  /var/log/cron
-uucp,news.crit                                          /var/log/spooler
-
-local7.*                                                /var/log/boot.log
-
-
-EOF
-
 sudo chown root:root /etc/audit/auditd.conf
 sudo chmod 640 /etc/audit/auditd.conf
 sudo chown root:root /etc/rsyslog.conf

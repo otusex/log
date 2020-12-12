@@ -78,43 +78,6 @@ http {
 }
 EOF
 
-cat << EOF > /etc/rsyslog.conf
-
-$ModLoad imuxsock 
-$ModLoad imjournal 
-
-
-$WorkDirectory /var/lib/rsyslog
-
-$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-
-
-$IncludeConfig /etc/rsyslog.d/*.conf
-
-$OmitLocalLogging on
-
-$IMJournalStateFile imjournal.state
-
-
-*.info;mail.none;authpriv.none;cron.none                /var/log/messages
-
-authpriv.*                                              /var/log/secure
-
-mail.*                                                  -/var/log/maillog
-
-cron.*                                                  /var/log/cron
-
-*.emerg                                                 :omusrmsg:*
-
-uucp,news.crit                                          /var/log/spooler
-
-local7.*                                                /var/log/boot.log
-
-*.* @192.168.10.23
-
-EOF
-
-
 cat << EOF > /etc/audit/rules.d/audit.rules
 -D
 

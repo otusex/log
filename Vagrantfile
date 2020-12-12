@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
 
       end
 
-   config.vm.provision "shell", path: "wdo.sh"
+   web.vm.provision "shell", path: "wdo.sh"
 
 end
 
@@ -24,7 +24,7 @@ end
 
       end
 
-     config.vm.provision "shell", path: "ldo.sh"
+     log.vm.provision "shell", path: "ldo.sh"
      
     end
 
@@ -36,7 +36,7 @@ end
       vb.customize ["modifyvm", :id, "--memory", "2048"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       end
-    config.vm.provision "shell", path: "edo.sh"
+    elk.vm.provision "shell", path: "edo.sh"
 
  end
 

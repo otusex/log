@@ -38,56 +38,6 @@ sudo firewall-cmd --reload
 sudo yum install --enablerepo=elasticsearch-7.x elasticsearch kibana filebeat -y
 sudo filebeat modules enable nginx
 
-cat << EOF > /etc/rsyslog.conf
-
-
-
-$ModLoad imuxsock 
-$ModLoad imjournal 
-
-$ModLoad imudp
-$UDPServerRun 514
-
-$ModLoad imtcp
-$InputTCPServerRun 514
-
-$WorkDirectory /var/lib/rsyslog
-
-$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
-
-
-$IncludeConfig /etc/rsyslog.d/*.conf
-
-$OmitLocalLogging on
-
-$IMJournalStateFile imjournal.state
-
-
-if $fromhost-ip == "192.168.10.22"  and $syslogtag == 'nginx_access:' then {
-	action(type="omfile" file="/mnt/logging/192.168.10.22/192.168.10.22-nginx-access.log" template="OnlyMsg")
-	stop
-}
-if $fromhost-ip == "192.168.10.22"  and $syslogtag == 'nginx_error:' then {
-	action(type="omfile" file="/mnt/logging/192.168.10.22/192.168.10.22-nginx-error.log" template="OnlyMsg")
-	stop
-}
-
-
-*.info;mail.none;authpriv.none;cron.none                /var/log/messages
-
-authpriv.*                                              /var/log/secure
-
-mail.*                                                  -/var/log/maillog
-
-cron.*                                                  /var/log/cron
-
-*.emerg                                                 :omusrmsg:*
-
-uucp,news.crit                                          /var/log/spooler
-
-local7.*                                                /var/log/boot.log
-
-EOF
 
 
 sudo sed -i "0,/#var.paths:/{s/#var.paths:.*/var.paths: [\"\/mnt\/logging\/192.168.10.22\/192.168.10.22-nginx-access.log*\"]/}" /etc/filebeat/modules.d/nginx.yml
