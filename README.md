@@ -1,0 +1,62 @@
+#### Выполнение ДЗ
+
+**1. На веб-сервере WEB настроено:**
+- nginx отправляет логи ошибок и логи доступа на сервер хранения логов (log:192.168.10.23), логи ошибок также сохраняются локально в ```/var/log/nginx/error.log``` (настраивается в конфигурационном файле ```/etc/nginx/nginx.conf```):
+```
+access_log syslog:server=192.168.10.23:514,tag=nginx_access main;
+error_log syslog:server=192.168.10.23:514,tag=nginx_error notice;
+error_log /var/log/nginx/error.log crit;
+```
+- настроен rsyslog, пересылающий все события на сервер хранения логов (log:192.168.10.23)
+- настроен аудит конфигурационного файла nginx.conf с помощью audit, данные отправляются на сервер хранения логов (log:192.168.10.23)
+
+
+**2. На сервере хранения логов настроено:**
+- настроен rsyslog для приема логов с веб-сервера и сохранения их в папку ```/mnt/logging/192.168.10.22```:
+```
+root@log vagrant]# ls -l /mnt/logging/192.168.10.22/
+total 24
+-rw-------. 1 root root   62 Jan 17 22:28 audisp-remote.log
+-rw-------. 1 root root 2142 Jan 17 22:48 nginx_access.log
+-rw-------. 1 root root  133 Jan 17 22:33 ntpd.log
+-rw-------. 1 root root  336 Jan 17 22:29 sshd.log
+-rw-------. 1 root root  195 Jan 17 22:30 sudo.log
+-rw-------. 1 root root    0 Jan 17 22:28 systemd-logind.log
+-rw-------. 1 root root  341 Jan 17 22:31 systemd.log
+```
+
+- настроен audit для приема логов с веб-сервера, просмотр принятых логов с веб-сервера с помощью команды ```ausearch -ts today -i | grep nginx```:
+```
+[root@log vagrant]#  ausearch -ts today -i | grep nginx
+node=web type=CONFIG_CHANGE msg=audit(01/17/21 22:30:53.981:1591) : auid=vagrant ses=4 op=updated_rules path=/etc/nginx/nginx.conf key=web_config_changed list=exit res=yes
+node=web type=PROCTITLE msg=audit(01/17/21 22:30:53.981:1592) : proctitle=vi /etc/nginx/nginx.conf
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1592) : item=3 name=/etc/nginx/nginx.conf~ inode=67522444 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 objtype=CREATE cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1592) : item=2 name=/etc/nginx/nginx.conf inode=67522444 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 objtype=DELETE cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1592) : item=1 name=/etc/nginx/ inode=33696201 dev=08:01 mode=dir,755 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:httpd_config_t:s0 objtype=PARENT cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1592) : item=0 name=/etc/nginx/ inode=33696201 dev=08:01 mode=dir,755 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:httpd_config_t:s0 objtype=PARENT cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=CONFIG_CHANGE msg=audit(01/17/21 22:30:53.981:1593) : auid=vagrant ses=4 op=updated_rules path=/etc/nginx/nginx.conf key=web_config_changed list=exit res=yes
+node=web type=PROCTITLE msg=audit(01/17/21 22:30:53.981:1594) : proctitle=vi /etc/nginx/nginx.conf
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1594) : item=1 name=/etc/nginx/nginx.conf inode=34012556 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:httpd_config_t:s0 objtype=CREATE cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PATH msg=audit(01/17/21 22:30:53.981:1594) : item=0 name=/etc/nginx/ inode=33696201 dev=08:01 mode=dir,755 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:httpd_config_t:s0 objtype=PARENT cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PROCTITLE msg=audit(01/17/21 22:30:53.991:1595) : proctitle=vi /etc/nginx/nginx.conf
+node=web type=PATH msg=audit(01/17/21 22:30:53.991:1595) : item=0 name=/etc/nginx/nginx.conf inode=34012556 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:httpd_config_t:s0 objtype=NORMAL cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PROCTITLE msg=audit(01/17/21 22:30:53.991:1596) : proctitle=vi /etc/nginx/nginx.conf
+node=web type=PATH msg=audit(01/17/21 22:30:53.991:1596) : item=0 name=/etc/nginx/nginx.conf inode=34012556 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 objtype=NORMAL cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+node=web type=PROCTITLE msg=audit(01/17/21 22:30:53.991:1597) : proctitle=vi /etc/nginx/nginx.conf
+node=web type=PATH msg=audit(01/17/21 22:30:53.991:1597) : item=0 name=/etc/nginx/nginx.conf inode=34012556 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 objtype=NORMAL cap_fp=none cap_fi=none cap_fe=0 cap_fver=0
+```
+
+**3. На сервере отображения логов настроено:**
+- rsyslog - собирает данные с сервера web nginx логи (192.168.10.22)
+- filebeat - настроен только модуль nginx (```/etc/filebeat/modules.d/nginx.yml```). Данный компонент "родной" для ELK стэка. На этом конкретном примере filebeat парсит файлы статистики nginx, который получает и первично обрабатывает rsyslog.
+- elasticsearch - движок, который хранит в себе данных, получаемые из различных источников, в нашем случае данные приходят с filebeat
+- kibana - графический интерфейс для отображения данных из elasticsearch
+
+
+Ссылка на лог в ELK
+```
+http://192.168.10.24:5601/app/logs/stream?logPosition=(end:now,position:(tiebreaker:9,time:1610912263000),start:now-1d,streamLive:!f)&flyoutOptions=(flyoutId:!n,flyoutVisibility:hidden,surroundingLogsId:!n)
+```
+
+
+
